@@ -28,5 +28,5 @@ class UnidadControl:
                 if i[:2] == "00": nuevaInstruccion.append("Registro")
                 if i[:2] == "01": nuevaInstruccion.append("Memoria")
                 if i[:2] == "11": nuevaInstruccion.append("Inmediato")
-                nuevaInstruccion.append(int(i[2:], 2))
+                nuevaInstruccion.append(i[2:])
         return nuevaInstruccion

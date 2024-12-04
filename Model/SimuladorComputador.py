@@ -32,21 +32,63 @@ class SimuladorComputador:
             self.memory.write(i, instruccion)
 
         while True:
-            # Se define que se hara lectura de instruccion
             self.control.señal = "00"
-            self.control.moverPCaMAR(self.mar, self.pc.contador)
-            self.bus.transferirControl(self.control, self.memory)
-            self.bus.transferirDireccion(self.mar, self.memory)
+            self.transferenciasMemoria(self.pc.contador)
             if self.memory.señal == "00":
-                self.memory.dato = self.memory.read(int(self.memory.direccion, 2))
-                self.memory.direccion = ""
-                self.bus.transferirDato(self.memory, self.mbr)
+                self.datoMemoriaMBR()
                 self.bus.transferirDato(self.mbr, self.ir)
                 self.control.instruction_register = self.ir.dato
                 self.ir.dato = ""
                 instruccion = self.control.decode()
-                print(instruccion)
-            break
+
+                if instruccion[0] == "MOV":
+                    self.mov(instruccion)
+
+                if instruccion[0] == "ADD":
+                   self.add(instruccion)
+
+                if instruccion[0] == "HLT":
+                    break
+
+                self.pc.contador = self.alu.add(self.pc.contador, 1)
+                print("AL: " + self.registros.AL)
+                print("MEMORY 10: " + str(self.memory.memory[10]))
+                print("BL: " + self.registros.BL)
+    
+    def mov(self, instruccion):
+        if instruccion[1] == "Registro" and instruccion[3] == "Inmediato":
+            self.control.señal = "01"
+            self.bus.transferirControl(self.control, self.registros)
+            if self.registros.señal == "01": 
+                if instruccion[2] == "0000000000": self.registros.AL += instruccion[4].zfill(32)
+        if instruccion[1] == "Registro" and instruccion[3] == "Memoria":
+            self.control.señal = "01"
+            self.bus.transferirControl(self.control, self.registros)
+            self.control.señal = "00"
+            self.transferenciasMemoria(instruccion[4])
+            self.datoMemoriaMBR()
+            if instruccion[2] == "0000000001": self.registros.BL = self.mbr.dato
+        if instruccion[1] == "Memoria" and instruccion[3] == "Registro":
+            self.control.señal = "01"
+            self.transferenciasMemoria(instruccion[2])
+            if self.memory.señal == "01": self.memory.write(int(self.memory.direccion, 2), self.registros.AL)
+
+    def add(self, instruccion):
+         if instruccion[1] == "Registro" and instruccion[3] == "Inmediato":
+            self.control.señal = "00"
+            self.bus.transferirControl(self.control, self.registros)
+            if self.registros.señal == "00":
+                if instruccion[2] == "0000000000": self.registros.AL = self.alu.add(self.registros.AL, int(instruccion[4], 2))
+    
+    def transferenciasMemoria(self, direccion):
+        self.control.moverPCaMAR(self.mar, direccion)
+        self.bus.transferirControl(self.control, self.memory)
+        self.bus.transferirDireccion(self.mar, self.memory)
+
+    def datoMemoriaMBR(self):
+        self.memory.dato = self.memory.read(int(self.memory.direccion, 2))
+        self.memory.direccion = ""
+        self.bus.transferirDato(self.memory, self.mbr)
 
 '''
         # Ejecutar ciclo de instrucciones
