@@ -28,7 +28,6 @@ class SimuladorComputador:
         for i, instruccion in enumerate(program):
             # Se codifica la memoria de texto a binario de 32 bits
             instruccion = self.ensamblador.codificarInstruccion(instruccion)
-            print(instruccion)
             self.memory.write(i, instruccion)
 
         while True:
@@ -40,6 +39,7 @@ class SimuladorComputador:
                 self.control.instruction_register = self.ir.dato
                 self.ir.dato = ""
                 instruccion = self.control.decode()
+                print(instruccion)
 
                 if instruccion[0] == "MOV":
                     self.mov(instruccion)
@@ -54,34 +54,60 @@ class SimuladorComputador:
                 print("AL: " + self.registros.AL)
                 print("MEMORY 10: " + str(self.memory.memory[10]))
                 print("BL: " + self.registros.BL)
+                print("CL: " + self.registros.CL)
     
     def mov(self, instruccion):
         if instruccion[1] == "Registro" and instruccion[3] == "Inmediato":
             self.control.señal = "01"
             self.bus.transferirControl(self.control, self.registros)
             if self.registros.señal == "01": 
-                if instruccion[2] == "0000000000": self.registros.AL += instruccion[4].zfill(32)
+                self.registros.write(instruccion[2], instruccion[4].zfill(32))
+
         if instruccion[1] == "Registro" and instruccion[3] == "Memoria":
             self.control.señal = "01"
             self.bus.transferirControl(self.control, self.registros)
             self.control.señal = "00"
             self.transferenciasMemoria(instruccion[4])
-            self.datoMemoriaMBR()
-            if instruccion[2] == "0000000001": self.registros.BL = self.mbr.dato
+            if self.memory.señal == "00":
+                self.datoMemoriaMBR()
+            if self.registros.señal == "01":
+                self.registros.write(instruccion[2], self.mbr.dato)
+
+        if instruccion[1] == "Registro" and instruccion[3] == "Registro":
+            self.control.señal = "00"
+            self.bus.transferirControl(self.control, self.registros)
+            if self.registros.señal == "00":
+                self.control.moverDireccionMAR(self.mar, instruccion[4])
+                self.control.moverDireccionMAR(self.registros, self.mar.direccion)
+                self.registros.dato = self.registros.read(self.registros.direccion)
+            self.control.señal = "01"
+            self.bus.transferirControl(self.control, self.registros)
+            if self.registros.señal == "01":
+                print(self.registros.dato)
+                self.registros.write(instruccion[2], self.registros.dato)
+
         if instruccion[1] == "Memoria" and instruccion[3] == "Registro":
             self.control.señal = "01"
             self.transferenciasMemoria(instruccion[2])
             if self.memory.señal == "01": self.memory.write(int(self.memory.direccion, 2), self.registros.AL)
 
+        if instruccion[1] == "Memoria" and instruccion[3] == "Inmediato":
+            self.control.señal = "01"
+            self.transferenciasMemoria(instruccion[2])
+            if self.memory.señal == "01": 
+                self.mbr.dato = instruccion[4].zfill(32)
+                self.bus.transferirDato(self.mbr, self.memory)
+                self.memory.write(int(self.memory.direccion, 2), self.memory.dato)
+
     def add(self, instruccion):
-         if instruccion[1] == "Registro" and instruccion[3] == "Inmediato":
+        if instruccion[1] == "Registro" and instruccion[3] == "Inmediato":
             self.control.señal = "00"
             self.bus.transferirControl(self.control, self.registros)
             if self.registros.señal == "00":
                 if instruccion[2] == "0000000000": self.registros.AL = self.alu.add(self.registros.AL, int(instruccion[4], 2))
     
     def transferenciasMemoria(self, direccion):
-        self.control.moverPCaMAR(self.mar, direccion)
+        self.control.moverDireccionMAR(self.mar, direccion)
         self.bus.transferirControl(self.control, self.memory)
         self.bus.transferirDireccion(self.mar, self.memory)
 

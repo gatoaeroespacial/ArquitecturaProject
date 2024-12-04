@@ -3,17 +3,12 @@ class UnidadControl:
         self.instruction_register = ""
 
     # La UC toma la direccion del PC y la pone en el MAR
-    def moverPCaMAR(self, mar, direccion):
-        mar.direccion = direccion
+    def moverDireccionMAR(self, destino, direccion):
+        destino.direccion = direccion
 
-
-    def fetch(self, memory):
-        # Recuperar la instrucción de la memoria utilizando el contador de programa
-        instruction = memory.read(self.program_counter)
-        self.instruction_register = instruction
-        self.program_counter += 1  # Incrementar el contador de programa
-        return instruction
-
+    def moverDatoMBR(self, destino, origen):
+        destino.dato = origen.dato
+        origen.dato = ""
 
     def decode(self):
         instruccion = [self.instruction_register[:8]]
