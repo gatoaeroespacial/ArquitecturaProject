@@ -34,21 +34,18 @@ class SimuladorComputador:
         while True:
             # Se define que se hara lectura de instruccion
             self.control.señal = "00"
-            #La UC toma la direccion del PC y la pone en el MAR
             self.control.moverPCaMAR(self.mar, self.pc.contador)
-            #El bus de control toma la señal dada por la UC y la lleva a la memoria
             self.bus.transferirControl(self.control, self.memory)
-            #El bus de direcciones toma la direccion del MAR y le indica a la Memoria que esa es la direccion
             self.bus.transferirDireccion(self.mar, self.memory)
             if self.memory.señal == "00":
-                # Al definirse que se debe leer el dato, se tiene en cuenta y se elimina la dirección
                 self.memory.dato = self.memory.read(int(self.memory.direccion, 2))
                 self.memory.direccion = ""
-                # El bus de datos toma el dato de la memoria y lo lleva al MBR
                 self.bus.transferirDato(self.memory, self.mbr)
-                # El bus de datos toma el dato del MBR y lo lleva al IR
                 self.bus.transferirDato(self.mbr, self.ir)
-                # La UC toma la instruccion del IR y la decodifica
+                self.control.instruction_register = self.ir.dato
+                self.ir.dato = ""
+                instruccion = self.control.decode()
+                print(instruccion)
             break
 
 '''

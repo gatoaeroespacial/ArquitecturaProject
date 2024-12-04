@@ -2,6 +2,7 @@ class UnidadControl:
     def __init__(self):
         self.instruction_register = ""
 
+    # La UC toma la direccion del PC y la pone en el MAR
     def moverPCaMAR(self, mar, direccion):
         mar.direccion = direccion
 
@@ -14,16 +15,18 @@ class UnidadControl:
         return instruction
 
 
-    def decode(self, instruction):
-        # Decodificar la instrucción en opcode y operando
-        parts = instruction.split(" ")
-        if len(parts) == 1:
-            op_code = parts[0]
-            operand = 0
-        elif len(parts) == 2:
-            op_code, operand = parts
-            operand = int(operand)
-        else:
-            raise ValueError(f"Formato de instrucción inválido: {instruction}")
-
-        return op_code, operand
+    def decode(self):
+        instruccion = [self.instruction_register[:8]]
+        instruccion.append(self.instruction_register[8:20])
+        instruccion.append(self.instruction_register[20:])
+        nuevaInstruccion = []
+        for i in instruccion:
+            if i == "00000000": nuevaInstruccion.append("MOV")
+            if i == "00000001": nuevaInstruccion.append("ADD")
+            if i == "00000010": nuevaInstruccion.append("HLT")
+            if len(i) == 12:
+                if i[:2] == "00": nuevaInstruccion.append("Registro")
+                if i[:2] == "01": nuevaInstruccion.append("Memoria")
+                if i[:2] == "11": nuevaInstruccion.append("Inmediato")
+                nuevaInstruccion.append(int(i[2:], 2))
+        return nuevaInstruccion
