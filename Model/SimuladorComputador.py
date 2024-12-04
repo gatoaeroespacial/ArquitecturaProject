@@ -3,6 +3,7 @@ from Model.UnidadControl import UnidadControl
 from Model.Memoria import Memoria
 from Model.Registros import Registros
 from Model.Bus import Bus
+from Model.Ensamblador import Ensamblador
 
 class SimuladorComputador:
     def __init__(self, memory_size=256):
@@ -11,12 +12,15 @@ class SimuladorComputador:
         self.memory = Memoria(memory_size)
         self.registros = Registros()
         self.bus = Bus()
+        self.ensamblador = Ensamblador()
 
     def run(self, program):
         # Cargar programa en la memoria
-        for i, instruction in enumerate(program):
-            self.memory.write(i, instruction)
-
+        for i, instruccion in enumerate(program):
+            instruccion = self.ensamblador.codificarInstruccion(instruccion)
+            print(instruccion)
+            self.memory.write(i, instruccion)
+'''
         # Ejecutar ciclo de instrucciones
         while True:
             instruction = self.control.fetch(self.memory)
@@ -40,3 +44,4 @@ class SimuladorComputador:
 
             # Imprimir estado de la simulación
             print(f"PC: {self.registros.PC}, IR: {self.registros.IR}, GPR: {self.registros.GPR}")
+'''
