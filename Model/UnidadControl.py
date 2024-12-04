@@ -1,6 +1,7 @@
 class UnidadControl:
     def __init__(self):
-        self.instruction_register = ""
+        self.instruction_register = "",
+        self.señal = ""
 
     # La UC toma la direccion del PC y la pone en el MAR
     def moverDireccionMAR(self, destino, direccion):

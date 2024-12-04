@@ -7,9 +7,11 @@ program = [
     "MOV [10], 10", # Guardar el contenido de AL en la dirección de memoria 10
     "MOV BL, [10]", # Cargar el valor de la dirección de memoria 10 en el registro BL
     "MOV CL, AL",
+    "MOV [9], [10]",
     "HLT"
 ]
 
 # Crear el simulador y ejecutar el programa
 simulador = SimuladorComputador()
 simulador.run(program)
+simulador.imprimir()

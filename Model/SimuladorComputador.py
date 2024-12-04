@@ -51,10 +51,6 @@ class SimuladorComputador:
                     break
 
                 self.pc.contador = self.alu.add(self.pc.contador, 1)
-                print("AL: " + self.registros.AL)
-                print("MEMORY 10: " + str(self.memory.memory[10]))
-                print("BL: " + self.registros.BL)
-                print("CL: " + self.registros.CL)
     
     def mov(self, instruccion):
         if instruccion[1] == "Registro" and instruccion[3] == "Inmediato":
@@ -83,7 +79,6 @@ class SimuladorComputador:
             self.control.señal = "01"
             self.bus.transferirControl(self.control, self.registros)
             if self.registros.señal == "01":
-                print(self.registros.dato)
                 self.registros.write(instruccion[2], self.registros.dato)
 
         if instruccion[1] == "Memoria" and instruccion[3] == "Registro":
@@ -98,6 +93,20 @@ class SimuladorComputador:
                 self.mbr.dato = instruccion[4].zfill(32)
                 self.bus.transferirDato(self.mbr, self.memory)
                 self.memory.write(int(self.memory.direccion, 2), self.memory.dato)
+
+        if instruccion[1] == "Memoria" and instruccion[3] == "Memoria":
+            self.control.señal = "00"
+            self.transferenciasMemoria(instruccion[4])
+            if self.memory.señal == "00":
+                print(self.memory.direccion)
+                self.memory.dato = self.memory.read(int(self.memory.direccion, 2))
+                print(self.memory.dato)
+            self.control.señal = "01"
+            self.transferenciasMemoria(instruccion[2])
+            if self.memory.señal == "01":
+                self.memory.write(int(self.memory.direccion, 2), self.memory.dato)
+
+            
 
     def add(self, instruccion):
         if instruccion[1] == "Registro" and instruccion[3] == "Inmediato":
@@ -116,28 +125,13 @@ class SimuladorComputador:
         self.memory.direccion = ""
         self.bus.transferirDato(self.memory, self.mbr)
 
-'''
-        # Ejecutar ciclo de instrucciones
-        while True:
-            instruction = self.control.fetch(self.memory)
-            if instruction == "HALT":  # Detener si se encuentra HALT
-                print("Ejecución finalizada.")
-                break
-            try:
-                op_code, operand = self.control.decode(instruction)
-            except ValueError as e:
-                print(f"Error en la instrucción: {e}")
-                break
-
-            if op_code == "ADD":
-                self.alu.add(self.registros.read_GPR(0), operand)
-                self.registros.write_GPR(0, self.alu.result)
-            elif op_code == "AND":
-                self.alu.and_operation(self.registros.read_GPR(0), operand)
-                self.registros.write_GPR(0, self.alu.result)
-            elif op_code == "MOV":
-                self.registros.write_GPR(0, operand)
-
-            # Imprimir estado de la simulación
-            print(f"PC: {self.registros.PC}, IR: {self.registros.IR}, GPR: {self.registros.GPR}")
-'''
+    def imprimir(self):
+        if self.registros.AL != "": print("AL: " + self.registros.AL)
+        if self.registros.AL != "": print("BL: " + self.registros.BL)
+        if self.registros.AL != "": print("CL: " + self.registros.CL)
+        if self.registros.AL != "": print("DL: " + self.registros.DL)
+        n = 0
+        for i in self.memory.memory:
+            if i != 0:
+                print("Memory " + str(n) + "  " + str(i))
+            n += 1
