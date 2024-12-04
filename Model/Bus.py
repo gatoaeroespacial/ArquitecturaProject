@@ -1,6 +1,15 @@
 class Bus:
     def __init__(self):
-        self.data = 0  # Datos que pasan por el bus
+        pass
 
-    def transfer(self, source, destination):
-        destination.write(self.data)  # Transferir datos de `source` a `destination`
+    def transferirDireccion(self, origen, destino):
+        destino.direccion = origen.direccion
+        origen.direccion = ""
+
+    def transferirControl(self, origen, destino):
+        destino.señal = origen.señal
+        origen.señal = ""
+    
+    def transferirDato(self, origen, destino):
+        destino.dato = origen.dato
+        origen.dato = ""
