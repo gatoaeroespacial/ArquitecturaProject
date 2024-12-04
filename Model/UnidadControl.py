@@ -1,7 +1,10 @@
 class UnidadControl:
     def __init__(self):
         self.instruction_register = ""
-        self.program_counter = 0  # Contador de programa
+
+    def moverPCaMAR(self, mar, direccion):
+        mar.direccion = direccion
+
 
     def fetch(self, memory):
         # Recuperar la instrucción de la memoria utilizando el contador de programa

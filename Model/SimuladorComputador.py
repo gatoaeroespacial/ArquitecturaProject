@@ -4,6 +4,8 @@ from Model.Memoria import Memoria
 from Model.Registros import Registros
 from Model.Bus import Bus
 from Model.Ensamblador import Ensamblador
+from Model.Pc import Pc
+from Model.Mar import Mar
 
 class SimuladorComputador:
     def __init__(self, memory_size=256):
@@ -13,13 +15,20 @@ class SimuladorComputador:
         self.registros = Registros()
         self.bus = Bus()
         self.ensamblador = Ensamblador()
+        self.pc = Pc()
+        self.mar = Mar()
 
     def run(self, program):
         # Cargar programa en la memoria
         for i, instruccion in enumerate(program):
             instruccion = self.ensamblador.codificarInstruccion(instruccion)
-            print(instruccion)
             self.memory.write(i, instruccion)
+        
+        print(self.pc.contador)
+
+        self.control.moverPCaMAR(self.mar, self.pc.contador)
+
+        print(self.mar.direccion)
 '''
         # Ejecutar ciclo de instrucciones
         while True:
