@@ -8,14 +8,14 @@ class Registros:
         self.dato = ""
         self.direccion = ""
 
-    def write(self, address, value):
-        if address == "0000000000": self.AL = value
-        if address == "0000000001": self.BL = value
-        if address == "0000000011": self.CL = value
-        if address == "0000000010": self.DL = value
+    def write(self):
+        if self.direccion == "0000000000": self.AL = self.dato
+        if self.direccion == "0000000001": self.BL = self.dato
+        if self.direccion == "0000000010": self.CL = self.dato
+        if self.direccion == "0000000011": self.DL = self.dato
 
-    def read(self, address):
-        if address == "0000000000": return self.AL
-        if address == "0000000001": return self.BL
-        if address == "0000000010": return self.CL
-        if address == "0000000011": return self.DL
+    def read(self):
+        if self.direccion == "0000000000": self.dato = self.AL
+        if self.direccion == "0000000001": self.dato = self.BL
+        if self.direccion == "0000000010": self.dato = self.CL
+        if self.direccion == "0000000011": self.dato = self.DL

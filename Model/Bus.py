@@ -16,3 +16,6 @@ class Bus:
     def transferirDato(self, origen, destino):
         destino.dato = origen.dato
         origen.dato = ""
+    
+    def transferirContador(self, contador, destino):
+        destino.direccion = contador
