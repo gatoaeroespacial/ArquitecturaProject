@@ -29,6 +29,10 @@ class UnidadControl:
             if i == "00000011": nuevaInstruccion.append("JMP")
             if i == "00000100": nuevaInstruccion.append("STORE")
             if i == "00000101": nuevaInstruccion.append("LOAD")
+            if i == "00000110": nuevaInstruccion.append("AND")
+            if i == "00000111": nuevaInstruccion.append("OR")
+            if i == "00001000": nuevaInstruccion.append("NOT")
+            if i == "00001001": nuevaInstruccion.append("SKIP")
             if len(i) == 12:
                 if i[:2] == "00": nuevaInstruccion.append("Registro")
                 if i[:2] == "01": nuevaInstruccion.append("Memoria")
