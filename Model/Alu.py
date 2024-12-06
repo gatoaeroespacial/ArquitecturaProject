@@ -7,10 +7,11 @@ class Alu:
 
     def add(self):
         if self.dato1 == "":
-            self.dato1 = "00"
+           self.dato1 = "00"
         if self.dato2 == "":
-            self.dato2 = "00"
+           self.dato2 = "00"
         self.result = int(self.dato1, 2) + int(self.dato2, 2)
+        #if self.result < -2147483648 or self.result > 
         self.result = bin(self.result)[2:].zfill(32)
         self.dato1 = ""
         self.dato2 = ""

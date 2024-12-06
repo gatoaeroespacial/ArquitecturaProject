@@ -10,7 +10,7 @@ from Model.Mbr import Mbr
 from Model.Ir import Ir
 
 class SimuladorComputador:
-    def __init__(self, memory_size=256):
+    def __init__(self, memory_size = 1024):
         self.alu = Alu()
         self.control = UnidadControl()
         self.memory = Memoria(memory_size)
@@ -26,13 +26,18 @@ class SimuladorComputador:
 
         # Cargar programa en la memoria
         n = 0
+        valor = True
         for i, instruccion in enumerate(program):
             # Se codifica la memoria de texto a binario de 32 bits
             instruccion = self.ensamblador.codificarInstruccion(instruccion)
+            if instruccion == "No se pueden escribir numeros negativos" or instruccion == "Excede el tamaño de la memoria" or instruccion == "Excede el tamaño posible de numero en instrucción":
+                print(instruccion)
+                valor = False
+                break
             self.memory.escribirInstruccion(i, str(instruccion))
             n = i
 
-        while True:
+        while valor:
             self.registroControl("00", self.pc.contador, "")
             self.transferenciasMemoria()
             if self.memory.señal == "00":
@@ -58,8 +63,23 @@ class SimuladorComputador:
 
                 if instruccion[0] == "STORE" and (instruccion[1] != "Memoria" or instruccion[3] != "Registro"):
                     self.pc.contador == "" + bin(0)[2:].zfill(32)
-                    print("La estructura del store es STORE [Direccion de memoria], Registro, cualquier otro valor no se ejecutara")
-                    break                    
+                    print("La estructura del store es STORE [Direccion de memoria], Registro. Cualquier otro valor no se ejecutara")
+                    break
+
+                if instruccion[0] == "STORE" and int(instruccion[2], 2) < n:
+                    self.pc.contador == "" + bin(0)[2:].zfill(32)
+                    print("No se puede hacer Store en los espacios de memoria usados para el programa")
+                    break
+
+                if instruccion[0] == "LOAD" and (instruccion[1] != "Registro" or instruccion[3] != "Memoria"):
+                    self.pc.contador == "" + bin(0)[2:].zfill(32)
+                    print("La estructura del load es LOAD Registro, [Direccion de memoria]. cualquier otro valor no se ejecutara")
+                    break      
+
+                if instruccion[0] == "LOAD" and int(instruccion[4], 2) < n:
+                    self.pc.contador == "" + bin(0)[2:].zfill(32)
+                    print("No se puede hacer load en los espacios de memoria usados para el programa")
+                    break            
 
                 if instruccion[0] == "HLT":
                     print("PC: " + self.pc.contador)
@@ -78,6 +98,9 @@ class SimuladorComputador:
 
                 if instruccion[0] == "STORE":
                     self.store(instruccion)
+
+                if instruccion[0] == "LOAD":
+                    self.load(instruccion)
 
                 self.alu.dato1 = self.pc.contador
                 self.alu.dato2 = "01"
@@ -150,6 +173,7 @@ class SimuladorComputador:
             if self.registros.señal == "01": self.registros.write()
 
         if instruccion[1] == "Registro" and instruccion[3] == "Memoria":
+            print(instruccion)
             self.registroControl("00", instruccion[4], "")
             self.transferenciasMemoria()
             if self.memory.señal == "00":  self.datoMemoriaMBR()
@@ -160,7 +184,9 @@ class SimuladorComputador:
             if self.registros.señal == "00": self.registros.read()
             self.bus.transferirDato(self.registros, self.control)
             self.alu.dato2 = self.control.dato
-            self.alu.add()
+            valor = self.alu.add()
+            if valor == "No se puede ejecutar porque no se ha incializado el espacio ":
+                return "No se puede ejecutar porque no se ha incializado el espacio " + "de memoria " + str(int(instruccion[4], 2))
             self.registroControl("01", instruccion[2], self.alu.result)
             self.transferenciasRegistros()
             self.bus.transferirDato(self.control, self.registros)
@@ -245,9 +271,25 @@ class SimuladorComputador:
         if instruccion[1] == "Memoria":
             self.control.direccion = instruccion[2]
             self.pc.contador = bin(int(self.control.direccion, 2) - 1)[2:].zfill(32)
-            
+         
     def store(self, instruccion):
-        self.registroControl()
+        self.registroControl("00", instruccion[4], "")
+        self.transferenciasRegistros()
+        if self.registros.señal == "00": self.registros.read()
+        self.registroControl("01", instruccion[2], "")
+        self.bus.transferirDato(self.registros, self.mbr)
+        self.transferenciasMemoria()
+        if self.memory.señal == "01": self.memory.write()
+
+    def load(self, instruccion):
+        self.registroControl("00", instruccion[4], "")
+        self.transferenciasMemoria()
+        if self.memory.señal == "00": self.datoMemoriaMBR()
+        self.registroControl("01", instruccion[2], "")
+        self.transferenciasRegistros()
+        self.bus.transferirDato(self.mbr, self.registros)
+        if self.registros.señal == "01": self.registros.write()
+
     def registroControl(self, señal, direccion, dato):
         self.control.señal = señal
         self.control.direccion = direccion
