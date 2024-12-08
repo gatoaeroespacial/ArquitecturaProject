@@ -21,6 +21,11 @@ class SimuladorComputador:
         self.mar = Mar()
         self.mbr = Mbr()
         self.ir = Ir()
+        self.flags = {
+            "Z": 0,  # Zero flag
+            "S": 0,  # Sign flag
+            "O": 0   # Overflow flag
+        }
 
     def run(self, program):
 
@@ -643,3 +648,42 @@ class SimuladorComputador:
             if i != "":
                 print("Memory " + str(n) + "  " + str(i))
             n += 1
+
+
+    def get_registers(self):
+        return self.registros  # Donde registers es un diccionario o estructura similar.
+    
+    def get_flags(self):
+        """
+        Retorna los estados actuales de las banderas.
+        """
+        return self.flags
+
+    def set_flag(self, flag, value):
+        """
+        Actualiza el valor de una bandera específica.
+        """
+        if flag in self.flags:
+            self.flags[flag] = value
+        else:
+            raise ValueError(f"Flag '{flag}' no es válida.")
+
+    def reset_flags(self):
+        """
+        Reinicia todas las banderas a su valor por defecto (0).
+        """
+        for flag in self.flags:
+            self.flags[flag] = 0
+
+    def execute_cmp(self, reg1, reg2):
+        """
+        Compara dos registros y actualiza las banderas.
+        """
+        valor1 = int(self.registros.__dict__[reg1], 2)  # Convierte el binario a entero
+        valor2 = int(self.registros.__dict__[reg2], 2)
+
+        # Actualizar banderas
+        self.flags["Z"] = int(valor1 == valor2)  # Zero flag
+        self.flags["S"] = int(valor1 < valor2)  # Sign flag
+        self.flags["O"] = 0  # Overflow no aplica aquí
+
