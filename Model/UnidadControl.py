@@ -18,9 +18,10 @@ class UnidadControl:
         destino.dato = dato
 
     def decode(self):
-        instruccion = [self.dato[:8]]
-        instruccion.append(self.dato[8:20])
-        instruccion.append(self.dato[20:])
+        dato_str = str(self.dato)
+        instruccion = [dato_str[:8]]
+        instruccion.append(dato_str[8:20])
+        instruccion.append(dato_str[20:])
         nuevaInstruccion = []
         for i in instruccion:
             if i == "00000000": nuevaInstruccion.append("MOV")

@@ -1,3 +1,278 @@
+# Clase Alu
+
+class Alu:
+    def __init__(self):
+        self.result = ""
+        self.dato1 = "00"
+        self.dato2 = "00"
+        self.flags = {"zero": 0, "carry": 0}  # Banderas para carry y zero
+
+    def add(self):
+        if self.dato1 == "":
+            return 2
+        if self.dato2 == "":
+            return 3
+        self.result = int(self.dato1, 2) + int(self.dato2, 2)
+        
+        # Verificar si hay desbordamiento o no
+        if self.result > 2147483647 or self.result < -2147483648:
+            return 1
+
+        # Banderas
+        self.flags["carry"] = 1 if self.result > 255 else 0  # Asumiendo overflow en 8 bits
+        self.result = bin(self.result)[2:].zfill(32)
+
+        # Verificar si el resultado es cero
+        self.flags["zero"] = 1 if self.result == "0" else 0
+        
+        self.dato1 = ""
+        self.dato2 = ""
+        return 0
+
+    def operacionAnd(self):
+        if self.dato1 == "":
+            return 1
+        if self.dato2 == "":
+            return 2
+        self.result = ""
+        n = 0
+        for i in self.dato1:
+            if i == "1" and self.dato2[n] == "1":
+                self.result += "1"
+            else:
+                self.result += "0"
+            n += 1
+        
+        # Banderas
+        self.flags["zero"] = 1 if self.result == "0" * len(self.result) else 0
+        
+        self.dato1 = ""
+        self.dato2 = ""
+        return 0
+
+    def operacionOr(self):
+        if self.dato1 == "":
+            return 1
+        if self.dato2 == "":
+            return 2
+        self.result = ""
+        n = 0
+        for i in self.dato1:
+            if i == "1" or self.dato2[n] == "1":
+                self.result += "1"
+            else:
+                self.result += "0"
+            n += 1
+        
+        # Banderas
+        self.flags["zero"] = 1 if self.result == "0" * len(self.result) else 0
+        
+        self.dato1 = ""
+        self.dato2 = ""
+        return 0
+
+    def operacionNot(self):
+        if self.dato1 == "":
+            return 1
+        self.result = ""
+        n = 0
+        for i in self.dato1:
+            if i == "1":
+                self.result += "0"
+            else:
+                self.result += "1"
+            n += 1
+        
+        # Banderas
+        self.flags["zero"] = 1 if self.result == "0" * len(self.result) else 0
+        
+        self.dato1 = ""
+        return 0
+
+# Clase Bus
+
+class Bus:
+    def __init__(self):
+        pass
+
+    # El bus de direccion toma la señal dada por un origen y la lleva al destino
+    def transferirDireccion(self, origen, destino):
+        destino.direccion = origen.direccion
+        origen.direccion = ""
+
+    # El bus de control toma la señal dada por un origen y la lleva al destino
+    def transferirControl(self, origen, destino):
+        destino.señal = origen.señal
+        origen.señal = ""
+
+    #El bus de datos toma la señal dada por un origen y la lleva al destino
+    def transferirDato(self, origen, destino):
+        destino.dato = origen.dato
+        origen.dato = ""
+    
+    def transferirContador(self, contador, destino):
+        destino.direccion = contador
+
+# Clase Ensamblador
+
+class Ensamblador:
+    def __init__(self):
+        pass
+
+    def codificarInstruccion(self, instruccion):
+        instruccion = instruccion.split()
+        nuevaInstruccion = ""
+        for i in instruccion:
+            i = i.strip(",")
+            if i == "MOV": nuevaInstruccion += "00000000"
+            if i == "ADD": nuevaInstruccion += "00000001"
+            if i == "HLT": nuevaInstruccion += "00000010" + bin(0)[2:].zfill(24)
+            if i == "JMP": nuevaInstruccion += "00000011"
+            if i == "STORE": nuevaInstruccion += "00000100"
+            if i == "LOAD": nuevaInstruccion += "00000101"
+            if i == "AND": nuevaInstruccion += "00000110"
+            if i == "OR": nuevaInstruccion += "00000111"
+            if i == "NOT": nuevaInstruccion += "00001000"
+            if i == "SKIP": nuevaInstruccion += "00001001"
+            if i == "AL": nuevaInstruccion += "000000000000"
+            if i == "BL": nuevaInstruccion += "000000000001"
+            if i == "CL": nuevaInstruccion += "000000000010"
+            if i == "DL": nuevaInstruccion += "000000000011"
+            if self.es_numero(i) == True: 
+                if int(i) < 0:
+                    return "No se pueden escribir numeros negativos"
+                if int(i) > 511:
+                    return "Excede el tamaño posible de numero en instrucción"
+                nuevaInstruccion += "11" + bin(int(i))[2:].zfill(10)
+            if i[0] == "[":
+                i = i.replace('[', '').replace(']', '').strip()
+                if int(i) > 1023:
+                    return "Excede el tamaño de la memoria"
+                nuevaInstruccion += '01' + bin(int(i))[2:].zfill(10)
+        if len(nuevaInstruccion) != 32:
+            n = 32 - len(nuevaInstruccion)
+            nuevaInstruccion += bin(0)[2:].zfill(n)
+        return nuevaInstruccion
+
+    def es_numero(self, numero):
+        try:
+            int(numero)  # Intentamos convertir a float
+            return True
+        except ValueError:
+            return False
+        
+# Clase Ir
+
+class Ir:
+    def __init__(self):
+        self.dato = ""
+
+# Clase Mar
+
+class Mar:
+    def __init__(self):
+        self.direccion = ""
+
+# Clase Mbr
+
+class Mbr:
+    def __init__(self):
+        self.dato = ""
+
+# Clase Memoria
+
+class Memoria:
+    def __init__(self, size):
+        self.memory = [0] * size  # Iniciar memoria de tamaño `size` cambie yo por 0 en vez de ""
+        self.direccion = "" # Direccion que necesita la memoria
+        self.señal = "" # Accion a realizar dada por el bus de control
+        self.dato = "" # Dato que se encontraba en la direccion
+
+    def write(self):
+        self.memory[int(self.direccion, 2)] = self.dato
+
+    def escribirInstruccion(self, address, value):
+        self.memory[address] = str(value)
+
+    def read(self):
+        self.dato = self.memory[int(self.direccion, 2)]
+
+# Clase Pc
+
+class Pc:
+    def __init__(self):
+        self.contador = "" + bin(0)[2:].zfill(32)
+
+
+
+# Clase Registros
+class Registros:
+    def __init__(self):
+        self.AL = ""
+        self.BL = ""
+        self.CL = ""
+        self.DL = ""
+        self.señal = ""
+        self.dato = ""
+        self.direccion = ""
+
+    def write(self):
+        if self.direccion == "0000000000": self.AL = self.dato
+        if self.direccion == "0000000001": self.BL = self.dato
+        if self.direccion == "0000000010": self.CL = self.dato
+        if self.direccion == "0000000011": self.DL = self.dato
+
+    def read(self):
+        if self.direccion == "0000000000": self.dato = self.AL
+        if self.direccion == "0000000001": self.dato = self.BL
+        if self.direccion == "0000000010": self.dato = self.CL
+        if self.direccion == "0000000011": self.dato = self.DL
+
+# Clase UnidadControl
+class UnidadControl:
+    def __init__(self):
+        self.señal = ""
+        self.direccion = ""
+        self.dato = ""
+
+    def moverDatoMBR(self, destino, origen):
+        destino.dato = origen.dato
+        origen.dato = ""
+
+    def transferirDireccion(self, direccion, destino):
+        destino.direccion = direccion
+
+    def tranferirSeñal(self, señal, destino):
+        destino.señal = señal
+
+    def transferirDato(self, dato, destino):
+        destino.dato = dato
+
+    def decode(self):
+        instruccion = [self.dato[:8]]
+        instruccion.append(self.dato[8:20])
+        instruccion.append(self.dato[20:])
+        nuevaInstruccion = []
+        for i in instruccion:
+            if i == "00000000": nuevaInstruccion.append("MOV")
+            if i == "00000001": nuevaInstruccion.append("ADD")
+            if i == "00000010": nuevaInstruccion.append("HLT")
+            if i == "00000011": nuevaInstruccion.append("JMP")
+            if i == "00000100": nuevaInstruccion.append("STORE")
+            if i == "00000101": nuevaInstruccion.append("LOAD")
+            if i == "00000110": nuevaInstruccion.append("AND")
+            if i == "00000111": nuevaInstruccion.append("OR")
+            if i == "00001000": nuevaInstruccion.append("NOT")
+            if i == "00001001": nuevaInstruccion.append("SKIP")
+            if len(i) == 12:
+                if i[:2] == "00": nuevaInstruccion.append("Registro")
+                if i[:2] == "01": nuevaInstruccion.append("Memoria")
+                if i[:2] == "11": nuevaInstruccion.append("Inmediato")
+                nuevaInstruccion.append(i[2:])
+        return nuevaInstruccion
+
+# Clase SimuladorComputador
+
 from Model.Alu import Alu
 from Model.UnidadControl import UnidadControl
 from Model.Memoria import Memoria
@@ -8,6 +283,8 @@ from Model.Pc import Pc
 from Model.Mar import Mar
 from Model.Mbr import Mbr
 from Model.Ir import Ir
+
+
 
 class SimuladorComputador:
     def __init__(self, memory_size = 1024):
@@ -156,9 +433,6 @@ class SimuladorComputador:
                 self.alu.add()
                 self.pc.contador = self.alu.result
     
-
-
-
     def mov(self, instruccion):
         if instruccion[1] == "Registro" and instruccion[3] == "Inmediato":
             self.registroControl("01", instruccion[2], instruccion[4].zfill(32))
@@ -690,44 +964,21 @@ class SimuladorComputador:
         self.flags["S"] = int(valor1 < valor2)  # Sign flag
         self.flags["O"] = 0  # Overflow no aplica aquí
 
-    # paso a paso
-    def step(self):
-        """
-        Ejecuta una instrucción y actualiza el estado del simulador.
-        """
-        # Dirección actual del PC
-        direccion_actual = int(self.pc.contador, 2)
+# contenido de main.py
 
-        # Leer instrucción de la memoria
-        self.mar.direccion = bin(direccion_actual)[2:].zfill(10)
-        self.memory.read()
-        self.mbr.dato = self.memory.dato
+import streamlit as st
+from Model.SimuladorComputador import SimuladorComputador
+from ui.visualizer import render_state_viewer
+from ui.forms import render_code_editor
 
-        # Decodificar instrucción
-        self.ir.dato = self.mbr.dato
-        instruccion = self.control.decode()
+if "simulador" not in st.session_state:
+    # Crear una instancia del simulador
+    st.session_state.simulador = SimuladorComputador()
+    
+st.title("Simulador de Computador")
+st.sidebar.title("Opciones")
+opcion = st.sidebar.selectbox("Selecciona una vista", ["Estado", "Ejecutar Programa"])
 
-        # Ejecutar instrucción
-        if instruccion[0] == "HLT":
-            print("Programa detenido.")
-            return
-
-        instrucciones = {
-            "MOV": self.mov,
-            "ADD": self.add,
-            "JMP": self.jmp,
-            "STORE": self.store,
-            "LOAD": self.load,
-            "AND": self.instruccionAnd,
-            "OR": self.instruccionOr,
-            "NOT": self.instruccionNot,
-        }
-
-        if instruccion[0] in instrucciones:
-            instrucciones[instruccion[0]](instruccion)
-
-        # Incrementar PC
-        self.alu.dato1 = self.pc.contador
-        self.alu.dato2 = "00000000000000000000000000000001"
-        self.alu.add()
-        self.pc.contador = self.alu.result
+if opcion == "Estado":
+    render_code_editor()
+    render_state_viewer()
