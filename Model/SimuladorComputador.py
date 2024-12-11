@@ -56,7 +56,7 @@ class SimuladorComputador:
                     print("El contador (PC) supera el HLT")
                     break
 
-                if instruccion[1] == "Memoria" and int(instruccion[2], 2) <= n:
+                if instruccion[1] == "Memoria" and int(instruccion[2], 2) <= n and instruccion[0] != "JMP":
                     self.pc.contador == "" + bin(0)[2:].zfill(32)
                     print("No puede modificar los espacios de memoria antes del hlt")
                     break
@@ -105,12 +105,11 @@ class SimuladorComputador:
 
                 if instruccion[0] == "ADD":
                     valorx = self.add(instruccion)
-                    if valorx[0] == 1:
-                        print("El resultado no se puede almacenar porque supera los valores minimos y maximos permitidos")
-                        break
-                    if valorx[0] == 2:
+                    if valorx[0] == 1 or valorx[0] == 2:
                        print("La posicion de memoria " + str(int(valorx[1], 2)) + " no ha sido inicializada")
                        break
+                    self.alu.carry = 0
+                    self.alu.overflow = 0
 
                 if instruccion[0] == "JMP":
                     self.jmp(instruccion)
@@ -227,8 +226,7 @@ class SimuladorComputador:
             self.bus.transferirDato(self.registros, self.control)
             self.alu.dato2 = self.control.dato
             valor = self.alu.add()
-            if valor == 1:
-                return [valor, ""]
+            if valor == 2: return [valor, instruccion[2]]
             self.registroControl("01", instruccion[2], self.alu.result)
             self.transferenciasRegistros()
             self.bus.transferirDato(self.control, self.registros)
@@ -247,10 +245,8 @@ class SimuladorComputador:
             self.bus.transferirDato(self.registros, self.control)
             self.alu.dato2 = self.control.dato
             valor = self.alu.add()
-            if valor == 1:
-                return [valor, ""]
-            if valor == 2:
-                return [valor, instruccion[4]]
+            if valor == 1: return [valor, instruccion[4]]
+            if valor == 2: return [valor, instruccion[2]]
             self.registroControl("01", instruccion[2], self.alu.result)
             self.transferenciasRegistros()
             self.bus.transferirDato(self.control, self.registros)
@@ -269,8 +265,8 @@ class SimuladorComputador:
             self.bus.transferirDato(self.registros, self.control)
             self.alu.dato2 = self.control.dato
             valor = self.alu.add()
-            if valor == 1:
-                return [valor, ""]
+            if valor == 1: return [valor, instruccion[4]]
+            if valor == 2: return [valor, instruccion[2]]
             self.registroControl("01", instruccion[2], self.alu.result)
             self.transferenciasRegistros()
             self.bus.transferirDato(self.control, self.registros)
@@ -285,8 +281,7 @@ class SimuladorComputador:
             self.bus.transferirDato(self.mbr, self.control)
             self.alu.dato2 = self.control.dato
             valor = self.alu.add()
-            if valor == 1:
-                return [valor, ""]
+            if valor == 2: return [valor, instruccion[2]]
             self.registroControl("01", instruccion[2], self.alu.result)
             self.bus.transferirDato(self.control, self.mbr)
             self.transferenciasMemoria()
@@ -305,12 +300,8 @@ class SimuladorComputador:
             self.bus.transferirDato(self.mbr, self.control)
             self.alu.dato2 = self.control.dato
             valor = self.alu.add()
-            if valor == 1:
-                return [valor, ""]
-            if valor == 2:
-                return[valor, instruccion[4]]
-            if valor == 1:
-                return[valor, instruccion[2]]
+            if valor == 1: return[valor, instruccion[4]]
+            if valor == 2: return[valor, instruccion[2]]
             self.registroControl("01", instruccion[2], self.alu.result)
             self.bus.transferirDato(self.control, self.mbr)
             self.transferenciasMemoria()
@@ -329,8 +320,8 @@ class SimuladorComputador:
             self.bus.transferirDato(self.mbr, self.control)
             self.alu.dato2 = self.control.dato
             valor = self.alu.add()
-            if valor == 1:
-                return [valor, ""]
+            if valor == 1:  return [valor, instruccion[4]]
+            if valor == 2:  return [valor, instruccion[2]]
             self.registroControl("01", instruccion[2], self.alu.result)
             self.bus.transferirDato(self.control, self.mbr)
             self.transferenciasMemoria()

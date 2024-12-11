@@ -1,6 +1,6 @@
 class Memoria:
     def __init__(self, size):
-        self.memory = [0] * size  # Iniciar memoria de tamaño `size` cambie yo por 0 en vez de ""
+        self.memory = [""] * size  # Iniciar memoria de tamaño `size` cambie yo por 0 en vez de ""
         self.direccion = "" # Direccion que necesita la memoria
         self.señal = "" # Accion a realizar dada por el bus de control
         self.dato = "" # Dato que se encontraba en la direccion
