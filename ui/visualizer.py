@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from Model.SimuladorComputador import SimuladorComputador
 
 def render_system_state():
@@ -13,7 +14,7 @@ def render_system_state():
         st.markdown("### Editor de Código")
         code = st.text_area("Escribe tu programa aquí", height=400)
         if st.button("Ejecutar"):
-            simulador.run(code.splitlines())
+            simulador.run(code.splitlines(),0)
             st.success("Programa ejecutado con éxito.")
 
         if st.button("Reset"):
@@ -27,24 +28,27 @@ def render_system_state():
 
         # Registros MAR, MBR, IR
         st.subheader("Registros Principales")
-        st.table([
-            {"Registro": "MAR", "Valor": simulador.mar.direccion},
-            {"Registro": "MBR", "Valor": simulador.mbr.dato},
-            {"Registro": "IR", "Valor": simulador.ir.dato},
-        ])
+        st.session_state.registrosPrin = pd.DataFrame([
+             {"Registro": "MAR", "Valor": simulador.mar.direccion},
+             {"Registro": "MBR", "Valor": simulador.mbr.dato},
+             {"Registro": "IR", "Valor": simulador.ir.dato},
+         ]) 
+        st.table(st.session_state.registrosPrin)
 
         # Banco de Registros
         st.subheader("Banco de Registros Generales")
-        st.table([
+        st.session_state.bancoRegistros = pd.DataFrame([
             {"Registro": "AL", "Valor": simulador.registros.AL},
             {"Registro": "BL", "Valor": simulador.registros.BL},
             {"Registro": "CL", "Valor": simulador.registros.CL},
             {"Registro": "DL", "Valor": simulador.registros.DL},
         ])
+        st.table(st.session_state.bancoRegistros)
 
         # Contador de Programa
         st.subheader("Contador de Programa (PC)")
         st.write(simulador.pc.contador)
+     
 
     with col3:
         # Memoria Principal
@@ -71,7 +75,7 @@ def render_system_state():
         st.subheader("ALU")
         st.write("Operaciones Lógicas y Aritméticas")
         st.table([
-            {"Dato 1": simulador.alu.dato1, "Dato 2": simulador.alu.dato2, "Resultado": simulador.alu.result, **simulador.alu.flags}
+            {"Dato 1": simulador.alu.dato1, "Dato 2": simulador.alu.dato2, "Resultado": simulador.alu.result, "Carry": simulador.alu.carry, "Overflow": simulador.alu.overflow},
         ])
 
     with col5:
@@ -82,6 +86,7 @@ def render_system_state():
             {"Origen": "Unidad de Control", "Destino": "ALU", "Estado": "Inactivo"},
             {"Origen": "Memoria", "Destino": "MBR", "Estado": "Activo"},#hacer que se active cuando se lea o escriba en memoria
         ])
+        
 
     # Dispositivos de I/O
     st.subheader("Dispositivos de I/O")

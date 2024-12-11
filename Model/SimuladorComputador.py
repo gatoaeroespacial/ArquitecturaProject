@@ -43,7 +43,7 @@ class SimuladorComputador:
                 break
             self.memory.escribirInstruccion(i, str(instruccion))
             n = i
-            print(self.memory.memory[n])
+            #print(self.memory.memory[n])
             time.sleep(demora)
 
         while valor:
