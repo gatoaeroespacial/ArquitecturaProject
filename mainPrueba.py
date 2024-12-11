@@ -14,47 +14,55 @@ program = [
     "MOV AL, 5", # Cargar el valor inmediato 5 en el registro AL
     #"JMP AL",
     "ADD AL, 3", # Sumar el valor inmediato 3 al contenido del registro AL
-    "MOV [42], 10", # Guardar el contenido de AL en la dirección de memoria 10
-    "MOV BL, [42]", # Cargar el valor de la dirección de memoria 10 en el registro BL
+    "MOV [52], 10", # Guardar el contenido de AL en la dirección de memoria 10
+    "MOV BL, [52]", # Cargar el valor de la dirección de memoria 10 en el registro BL
     "MOV CL, AL",
-    "MOV [41], [42]",
-    "MOV [44], AL",
-    "ADD AL, [41]",
+    "MOV [51], [52]",
+    "MOV [54], AL",
+    "ADD AL, [51]",
     #"JMP 12",
     "ADD BL, AL",
-    "ADD [44], 5",
+    "ADD [54], 5",
     #"JMP [14]",
-    "ADD [41], [41]",
-    "ADD [41], CL",
-    "STORE [43], CL",
-    "LOAD DL, [42]",
+    "ADD [51], [51]",
+    "ADD [51], CL",
+    "STORE [53], CL",
+    "LOAD DL, [52]",
     "AND AL, 10",
-    "AND BL, [41]",
+    "AND BL, [51]",
     "AND DL, BL",
-    "AND [44], 43",
-    "AND [42], [44]",
-    "AND [41], CL",
+    "AND [54], 53",
+    "AND [52], [54]",
+    "AND [51], CL",
     "OR AL, 352",
-    "OR DL, [44]",
+    "OR DL, [54]",
     "OR BL, AL",
-    "OR [44], 255",
-    "OR [43], [44]",
-    "OR [41], BL",
+    "OR [54], 255",
+    "OR [53], [54]",
+    "OR [51], BL",
     "SKIP",
     "NOT BL",
     "SKIP",
-    "NOT [44]",
-    "SUB [44], [41]",
-    "SUB [43], AL",
-    "SUB [42], 10",
-    "SUB AL, [41]",
+    "NOT [54]",
+    "SUB [54], [51]",
+    "SUB [53], AL",
+    "SUB [52], 10",
+    "SUB AL, [51]",
     "SUB BL, AL",
     "SUB CL, 10",
+    "MUL AL, BL",
+    "MUL CL, 30",
+    "MUL AL, [51]",
+    "MUL [51], 32",
+    "MUL [52], CL",
+    "MUL [54], [51]",
     "HLT"
 ]
 
 for i in program:
     print(i)
+
+print()
 
 # Crear el simulador y ejecutar el programa
 simulador = SimuladorComputador()
