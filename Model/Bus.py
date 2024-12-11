@@ -10,7 +10,7 @@ class Bus:
         
         mensaje1= st.empty()
         mensaje1.info(f"Se transfirio por el bus de direccion:{origen.direccion} ")
-        time.sleep(1)
+        time.sleep(0.1)
         origen.direccion = ""
         mensaje1.empty()
         
@@ -24,7 +24,7 @@ class Bus:
         mensaje2= st.empty()
      
         mensaje2.info(f"Se transfirio por el bus de control: {origen.señal}")
-        time.sleep(1)
+        time.sleep(0.1)
         origen.señal = ""
         mensaje2.empty()
 
@@ -34,7 +34,7 @@ class Bus:
         mensaje= st.empty()
 
         mensaje.info(f"Se transfirio por el bus de datos: {origen.dato}")
-        time.sleep(1)
+        time.sleep(0.1)
         origen.dato = ""
         mensaje.empty()
     

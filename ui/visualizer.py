@@ -56,7 +56,7 @@ def render_system_state():
         memoria = simulador.memory.memory
         memoria_mostrada = [
             {"Posición": i, "Valor": memoria[i]} 
-            for i in range(len(memoria)) if memoria[i] != 0
+            for i in range(len(memoria)) if memoria[i] != ""
         ]
         st.dataframe(memoria_mostrada, width=500, height=250)  # Limita la altura con scroll si es necesario
 
@@ -78,16 +78,6 @@ def render_system_state():
             {"Dato 1": simulador.alu.dato1, "Dato 2": simulador.alu.dato2, "Resultado": simulador.alu.result, "Carry": simulador.alu.carry, "Overflow": simulador.alu.overflow},
         ])
 
-    with col5:
-        # Bus del Sistema
-        st.subheader("Bus del Sistema")
-        st.write("Transferencias entre componentes")
-        st.table([
-            {"Origen": "Unidad de Control", "Destino": "ALU", "Estado": "Inactivo"},
-            {"Origen": "Memoria", "Destino": "MBR", "Estado": "Activo"},#hacer que se active cuando se lea o escriba en memoria
-        ])
-        
+    
 
-    # Dispositivos de I/O
-    st.subheader("Dispositivos de I/O")
-    st.write("Por implementar: Representación de datos de entrada/salida.")
+

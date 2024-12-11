@@ -9,6 +9,9 @@ from Model.Mar import Mar
 from Model.Mbr import Mbr
 from Model.Ir import Ir
 
+import streamlit as st
+import time
+
 class SimuladorComputador:
     def __init__(self, memory_size = 1024):
         self.alu = Alu()
@@ -990,6 +993,7 @@ class SimuladorComputador:
     def datoMemoriaMBR(self):
         self.memory.read()
         self.bus.transferirDato(self.memory, self.mbr)
+
 
     def imprimir(self):
         print("AL: " + self.registros.AL)
