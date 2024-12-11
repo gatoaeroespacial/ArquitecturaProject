@@ -34,6 +34,9 @@ class UnidadControl:
             if i == "00000111": nuevaInstruccion.append("OR")
             if i == "00001000": nuevaInstruccion.append("NOT")
             if i == "00001001": nuevaInstruccion.append("SKIP")
+            if i == "00001010": nuevaInstruccion.append("SUB")
+            if i == "00001011": nuevaInstruccion.append("MUL")
+            if i == "00001100": nuevaInstruccion.append("DIV")
             if len(i) == 12:
                 if i[:2] == "00": nuevaInstruccion.append("Registro")
                 if i[:2] == "01": nuevaInstruccion.append("Memoria")
