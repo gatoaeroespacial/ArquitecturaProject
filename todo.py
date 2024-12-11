@@ -313,7 +313,7 @@ class SimuladorComputador:
             # Se codifica la memoria de texto a binario de 32 bits
             instruccion = self.ensamblador.codificarInstruccion(instruccion)
             if instruccion == "No se pueden escribir numeros negativos" or instruccion == "Excede el tamaño de la memoria" or instruccion == "Excede el tamaño posible de numero en instrucción":
-                print(instruccion)
+                # print(instruccion)
                 valor = False
                 break
             self.memory.escribirInstruccion(i, str(instruccion))
@@ -330,12 +330,12 @@ class SimuladorComputador:
 
                 if int(self.pc.contador, 2) > n:
                     self.pc.contador == "" + bin(0)[2:].zfill(32)
-                    print("El contador (PC) supera el HLT")
+                    # print("El contador (PC) supera el HLT")
                     break
 
                 if instruccion[1] == "Memoria" and int(instruccion[2], 2) <= n:
                     self.pc.contador == "" + bin(0)[2:].zfill(32)
-                    print("No puede modificar los espacios de memoria antes del hlt")
+                    # print("No puede modificar los espacios de memoria antes del hlt")
                     break
 
                 if instruccion[3] == "Memoria" and int(instruccion[4], 2) <= n:
@@ -981,4 +981,4 @@ opcion = st.sidebar.selectbox("Selecciona una vista", ["Estado", "Ejecutar Progr
 
 if opcion == "Estado":
     render_code_editor()
-    render_state_viewer()
+    (render_state_viewer)

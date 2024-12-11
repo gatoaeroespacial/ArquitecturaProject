@@ -21,6 +21,7 @@ class SimuladorComputador:
         self.mar = Mar()
         self.mbr = Mbr()
         self.ir = Ir()
+        self.salida = ""
         self.flags = {
             "Z": 0,  # Zero flag
             "S": 0,  # Sign flag
@@ -36,7 +37,7 @@ class SimuladorComputador:
             # Se codifica la memoria de texto a binario de 32 bits
             instruccion = self.ensamblador.codificarInstruccion(instruccion)
             if instruccion == "No se pueden escribir numeros negativos" or instruccion == "Excede el tamaño de la memoria" or instruccion == "Excede el tamaño posible de numero en instrucción":
-                print(instruccion)
+                # print(instruccion)
                 valor = False
                 break
             self.memory.escribirInstruccion(i, str(instruccion))

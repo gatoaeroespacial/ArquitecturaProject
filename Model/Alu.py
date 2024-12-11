@@ -86,3 +86,7 @@ class Alu:
         
         self.dato1 = ""
         return 0
+
+
+
+

@@ -9,3 +9,6 @@ if "simulador" not in st.session_state:
 
 st.title("Simulador de Computador")
 render_system_state()
+
+
+
