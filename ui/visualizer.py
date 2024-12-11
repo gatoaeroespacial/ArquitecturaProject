@@ -14,7 +14,7 @@ def render_system_state():
         st.markdown("### Editor de Código")
         code = st.text_area("Escribe tu programa aquí", height=400)
         if st.button("Ejecutar"):
-            simulador.run(code.splitlines(),0)
+            simulador.run(code.splitlines())
             st.success("Programa ejecutado con éxito.")
 
         if st.button("Reset"):
