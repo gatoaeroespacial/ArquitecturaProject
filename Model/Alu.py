@@ -47,8 +47,6 @@ class Alu:
         
         self.dato1 = ""
         self.dato2 = ""
-        print("acarreo: " + str(self.carry))
-        print("overflow: " + str(self.overflow))
         return 0
 
     def operacionAnd(self):

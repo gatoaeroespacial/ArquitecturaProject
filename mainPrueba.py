@@ -8,6 +8,7 @@ while True:
         break
     program.append(valor)
 '''
+demora = 0
 
 # Programa de prueba
 program = [
@@ -52,4 +53,4 @@ for i in program:
 
 # Crear el simulador y ejecutar el programa
 simulador = SimuladorComputador()
-simulador.run(program)
+simulador.run(program, demora)
