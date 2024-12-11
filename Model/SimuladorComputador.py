@@ -28,7 +28,7 @@ class SimuladorComputador:
             "O": 0   # Overflow flag
         }
 
-    def run(self, program, demora):
+    def run(self, program):
 
         # Cargar programa en la memoria
         n = 0
@@ -42,23 +42,15 @@ class SimuladorComputador:
                 break
             self.memory.escribirInstruccion(i, str(instruccion))
             n = i
-            print(self.memory.memory[n])
-            time.sleep(demora)
 
         while valor:
             self.registroControl("00", self.pc.contador, "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00":
                 self.datoMemoriaMBR()
-                time.sleep(demora)
                 self.bus.transferirDato(self.mbr, self.ir)
-                time.sleep(demora)
                 self.bus.transferirDato(self.ir, self.control)
-                time.sleep(demora)
                 instruccion = self.control.decode()
-                time.sleep(demora)
 
                 if int(self.pc.contador, 2) > n:
                     self.pc.contador == "" + bin(0)[2:].zfill(32)
@@ -107,13 +99,21 @@ class SimuladorComputador:
                     break
 
                 if instruccion[0] == "MOV":
-                    valorx = self.mov(instruccion, demora)
+                    valorx = self.mov(instruccion)
                     if valorx[0] == 1:
                        print("La posicion de memoria " + str(int(valorx[1], 2)) + " no ha sido inicializada")
                        break
 
                 if instruccion[0] == "ADD":
-                    valorx = self.add(instruccion, demora)
+                    valorx = self.add(instruccion)
+                    if valorx[0] == 1 or valorx[0] == 2:
+                       print("La posicion de memoria " + str(int(valorx[1], 2)) + " no ha sido inicializada")
+                       break
+                    self.alu.carry = 0
+                    self.alu.overflow = 0
+
+                if instruccion[0] == "SUB":
+                    valorx = self.sub(instruccion)
                     if valorx[0] == 1 or valorx[0] == 2:
                        print("La posicion de memoria " + str(int(valorx[1], 2)) + " no ha sido inicializada")
                        break
@@ -121,841 +121,608 @@ class SimuladorComputador:
                     self.alu.overflow = 0
 
                 if instruccion[0] == "JMP":
-                    self.jmp(instruccion, demora)
+                    self.jmp(instruccion)
 
                 if instruccion[0] == "STORE":
-                    self.store(instruccion, demora)
+                    self.store(instruccion)
 
                 if instruccion[0] == "LOAD":
-                    self.load(instruccion, demora)
+                    self.load(instruccion)
 
                 if instruccion[0] == "AND":
-                    valorx = self.instruccionAnd(instruccion, demora)
+                    valorx = self.instruccionAnd(instruccion)
                     if valorx[0] == 1 or valorx[0] == 2:
                         print("La posicion de memoria " + valorx[1] + " no ha sido inicializada")
                         break
 
                 if instruccion[0] == "OR":
-                    valorx = self.instruccionOr(instruccion, demora)
+                    valorx = self.instruccionOr(instruccion)
                     if valorx[0] == 2:
                         print("La posicion de memoria " + valorx[1] + " no ha sido inicializada")
                         break
 
                 if instruccion[0] == "NOT":
-                    valorx = self.instruccionNot(instruccion, demora)
+                    valorx = self.instruccionNot(instruccion)
                     if valorx[0] == 1:
                         print("La posicion de memoria " + valorx[1] + " no ha sido inicializada")
                         break
 
                 if instruccion[0] == "SKIP":
                     self.alu.dato1 = self.pc.contador
-                    time.sleep(demora)
                     self.alu.dato2 = "01".zfill(32)
-                    time.sleep(demora)
                     self.alu.add()
-                    time.sleep(demora)
                     self.pc.contador = self.alu.result
-                    time.sleep(demora)
+                    
 
                 self.alu.dato1 = self.pc.contador
-                time.sleep(demora)
                 self.alu.dato2 = "01"
-                time.sleep(demora)
                 self.alu.add()
-                time.sleep(demora)
                 self.pc.contador = self.alu.result
-                time.sleep(demora)
-    
 
-
-
-    def mov(self, instruccion, demora):
+    def mov(self, instruccion):
         if instruccion[1] == "Registro" and instruccion[3] == "Inmediato":
             self.registroControl("01", instruccion[2], instruccion[4].zfill(32))
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.registros)
-            time.sleep(demora)
             if self.registros.señal == "01": self.registros.write()
-            time.sleep(demora)
             return [0, ""]
 
         if instruccion[1] == "Registro" and instruccion[3] == "Memoria":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00": self.datoMemoriaMBR()
-            time.sleep(demora)
             self.registroControl("01", instruccion[2], "")
-            time.sleep(demora)
             self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
             if self.control.dato == "": return [2, instruccion[4]]
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.registros)
-            time.sleep(demora)
             if self.registros.señal == "01": self.registros.write()
-            time.sleep(demora)
             return [0, ""]
 
         if instruccion[1] == "Registro" and instruccion[3] == "Registro":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00": self.registros.read()
-            time.sleep(demora)
             if self.registros.dato == "": return [2, instruccion[4]]
-            time.sleep(demora)
             self.registroControl("01", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "01": self.registros.write()
-            time.sleep(demora)
             return [0, ""]
 
         if instruccion[1] == "Memoria" and instruccion[3] == "Registro":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00": self.registros.read()
-            time.sleep(demora)
             if self.registros.dato == "": return [2, instruccion[4]]
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.mbr)
-            time.sleep(demora)
             self.registroControl("01", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "01": self.memory.write()
-            time.sleep(demora)
             return [0, ""]
 
         if instruccion[1] == "Memoria" and instruccion[3] == "Inmediato":
             self.registroControl("01", instruccion[2], instruccion[4].zfill(32))
-            time.sleep(demora)
             self.control.moverDatoMBR(self.mbr, self.control)
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "01": self.memory.write()
-            time.sleep(demora)
             return [0, ""]
 
         if instruccion[1] == "Memoria" and instruccion[3] == "Memoria":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00": self.memory.read()
-            time.sleep(demora)
             if self.memory.dato == "": return [1, instruccion[4]]
-            time.sleep(demora)
             self.registroControl("01", instruccion[2], "")
-            time.sleep(demora)
             self.bus.transferirDato(self.memory, self.mbr)
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "01": self.memory.write()
-            time.sleep(demora)
             return [0, ""]
 
-    def add(self, instruccion, demora):
+    def add(self, instruccion):
         if instruccion[1] == "Registro" and instruccion[3] == "Inmediato":
-            time.sleep(demora)
-            self.alu.dato1 = instruccion[4]
-            time.sleep(demora)
+            self.alu.dato2 = instruccion[4]
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00": self.registros.read()
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
-            self.alu.dato2 = self.control.dato
-            time.sleep(demora)
+            self.alu.dato1 = self.control.dato
             valor = self.alu.add()
-            time.sleep(demora)
-            if valor == 2: return [valor, instruccion[2]]
-            time.sleep(demora)
+            if valor == 1: return [valor, instruccion[2]]
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.registros)
-            time.sleep(demora)
             if self.registros.señal == "01": self.registros.write()
-            time.sleep(demora)
             return [valor, ""]
 
         if instruccion[1] == "Registro" and instruccion[3] == "Memoria":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00":  self.datoMemoriaMBR()
-            time.sleep(demora)
             self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
-            self.alu.dato1 = self.control.dato
-            time.sleep(demora)
-            self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
-            self.transferenciasRegistros()
-            time.sleep(demora)
-            if self.registros.señal == "00": self.registros.read()
-            time.sleep(demora)
-            self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
-            valor = self.alu.add()
-            time.sleep(demora)
-            if valor == 1: return [valor, instruccion[4]]
-            if valor == 2: return [valor, instruccion[2]]
-            self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
+            self.registroControl("00", instruccion[2], "")
             self.transferenciasRegistros()
-            time.sleep(demora)
+            if self.registros.señal == "00": self.registros.read()
+            self.bus.transferirDato(self.registros, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.add()
+            if valor == 2: return [valor, instruccion[4]]
+            if valor == 1: return [valor, instruccion[2]]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.transferenciasRegistros()
             self.bus.transferirDato(self.control, self.registros)
-            time.sleep(demora)
             if self.registros.señal == "01": self.registros.write()
-            time.sleep(demora)
             return [valor, ""]
 
         if instruccion[1] == "Registro" and instruccion[3] == "Registro":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00":  self.registros.read()
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
-            self.alu.dato1 = self.control.dato
-            time.sleep(demora)
-            self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
-            self.transferenciasRegistros()
-            time.sleep(demora)
-            if self.registros.señal == "00": self.registros.read()
-            time.sleep(demora)
-            self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
-            valor = self.alu.add()
-            time.sleep(demora)
-            if valor == 1: return [valor, instruccion[4]]
-            if valor == 2: return [valor, instruccion[2]]
-            self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
+            self.registroControl("00", instruccion[2], "")
             self.transferenciasRegistros()
-            time.sleep(demora)
+            if self.registros.señal == "00": self.registros.read()
+            self.bus.transferirDato(self.registros, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.add()
+            if valor == 2: return [valor, instruccion[4]]
+            if valor == 1: return [valor, instruccion[2]]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.transferenciasRegistros()
             self.bus.transferirDato(self.control, self.registros)
-            time.sleep(demora)
             if self.registros.señal == "01": self.registros.write()
-            time.sleep(demora)
             return [valor, ""]
 
         if instruccion[1] == "Memoria" and instruccion[3] == "Inmediato":
-            self.alu.dato1 = instruccion[4]
-            time.sleep(demora)
+            self.alu.dato2 = instruccion[4]
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00": self.datoMemoriaMBR()
-            time.sleep(demora)
             self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
-            self.alu.dato2 = self.control.dato
-            time.sleep(demora)
+            self.alu.dato1 = self.control.dato
             valor = self.alu.add()
-            time.sleep(demora)
-            if valor == 2: return [valor, instruccion[2]]
+            if valor == 1: return [valor, instruccion[2]]
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.mbr)
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "01": self.memory.write()
-            time.sleep(demora)
             return [valor, ""]
 
         if instruccion[1] == "Memoria" and instruccion[3] == "Memoria":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00":  self.datoMemoriaMBR()
-            time.sleep(demora)
             self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
-            self.alu.dato1 = self.control.dato
-            time.sleep(demora)
-            self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
-            self.transferenciasMemoria()
-            time.sleep(demora)
-            if self.memory.señal == "00": self.datoMemoriaMBR()
-            time.sleep(demora)
-            self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
-            valor = self.alu.add()
-            time.sleep(demora)
-            if valor == 1: return[valor, instruccion[4]]
-            if valor == 2: return[valor, instruccion[2]]
-            self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
-            self.bus.transferirDato(self.control, self.mbr)
-            time.sleep(demora)
+            self.registroControl("00", instruccion[2], "")
             self.transferenciasMemoria()
-            time.sleep(demora)
+            if self.memory.señal == "00": self.datoMemoriaMBR()
+            self.bus.transferirDato(self.mbr, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.add()
+            if valor == 2: return[valor, instruccion[4]]
+            if valor == 1: return[valor, instruccion[2]]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.bus.transferirDato(self.control, self.mbr)
+            self.transferenciasMemoria()
             if self.memory.señal == "01": self.memory.write()
-            time.sleep(demora)
             return [valor, ""]
 
         if instruccion[1] == "Memoria" and instruccion[3] == "Registro":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00":  self.registros.read()
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
-            self.alu.dato1 = self.control.dato
-            time.sleep(demora)
-            self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
-            self.transferenciasMemoria()
-            time.sleep(demora)
-            if self.memory.señal == "00": self.datoMemoriaMBR()
-            time.sleep(demora)
-            self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
-            valor = self.alu.add()
-            time.sleep(demora)
-            if valor == 1:  return [valor, instruccion[4]]
-            if valor == 2:  return [valor, instruccion[2]]
-            self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
-            self.bus.transferirDato(self.control, self.mbr)
-            time.sleep(demora)
+            self.registroControl("00", instruccion[2], "")
             self.transferenciasMemoria()
-            time.sleep(demora)
+            if self.memory.señal == "00": self.datoMemoriaMBR()
+            self.bus.transferirDato(self.mbr, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.add()
+            if valor == 2:  return [valor, instruccion[4]]
+            if valor == 1:  return [valor, instruccion[2]]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.bus.transferirDato(self.control, self.mbr)
+            self.transferenciasMemoria()
             if self.memory.señal == "01": self.memory.write()
-            time.sleep(demora)
             return [valor, ""]
 
-    def jmp(self, instruccion, demora):
+    def sub(self, instruccion):
+        if instruccion[1] == "Registro" and instruccion[3] == "Inmediato":
+            self.alu.dato2 = instruccion[4]
+            self.registroControl("00", instruccion[2], "")
+            self.transferenciasRegistros()
+            if self.registros.señal == "00": self.registros.read()
+            self.bus.transferirDato(self.registros, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.sub()
+            if valor == 1: return [valor, instruccion[2]]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.transferenciasRegistros()
+            self.bus.transferirDato(self.control, self.registros)
+            if self.registros.señal == "01": self.registros.write()
+            return [valor, ""]
+
+        if instruccion[1] == "Registro" and instruccion[3] == "Memoria":
+            self.registroControl("00", instruccion[4], "")
+            self.transferenciasMemoria()
+            if self.memory.señal == "00":  self.datoMemoriaMBR()
+            self.bus.transferirDato(self.mbr, self.control)
+            self.alu.dato2 = self.control.dato
+            self.registroControl("00", instruccion[2], "")
+            self.transferenciasRegistros()
+            if self.registros.señal == "00": self.registros.read()
+            self.bus.transferirDato(self.registros, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.sub()
+            if valor == 2: return [valor, instruccion[4]]
+            if valor == 1: return [valor, instruccion[2]]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.transferenciasRegistros()
+            self.bus.transferirDato(self.control, self.registros)
+            if self.registros.señal == "01": self.registros.write()
+            return [valor, ""]
+
+        if instruccion[1] == "Registro" and instruccion[3] == "Registro":
+            self.registroControl("00", instruccion[4], "")
+            self.transferenciasRegistros()
+            if self.registros.señal == "00":  self.registros.read()
+            self.bus.transferirDato(self.registros, self.control)
+            self.alu.dato2 = self.control.dato
+            self.registroControl("00", instruccion[2], "")
+            self.transferenciasRegistros()
+            if self.registros.señal == "00": self.registros.read()
+            self.bus.transferirDato(self.registros, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.sub()
+            if valor == 2: return [valor, instruccion[4]]
+            if valor == 1: return [valor, instruccion[2]]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.transferenciasRegistros()
+            self.bus.transferirDato(self.control, self.registros)
+            if self.registros.señal == "01": self.registros.write()
+            return [valor, ""]
+
+        if instruccion[1] == "Memoria" and instruccion[3] == "Inmediato":
+            self.alu.dato2 = instruccion[4]
+            self.registroControl("00", instruccion[2], "")
+            self.transferenciasMemoria()
+            if self.memory.señal == "00": self.datoMemoriaMBR()
+            self.bus.transferirDato(self.mbr, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.sub()
+            if valor == 1: return [valor, instruccion[2]]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.bus.transferirDato(self.control, self.mbr)
+            self.transferenciasMemoria()
+            if self.memory.señal == "01": self.memory.write()
+            return [valor, ""]
+
+        if instruccion[1] == "Memoria" and instruccion[3] == "Memoria":
+            self.registroControl("00", instruccion[4], "")
+            self.transferenciasMemoria()
+            if self.memory.señal == "00":  self.datoMemoriaMBR()
+            self.bus.transferirDato(self.mbr, self.control)
+            self.alu.dato2 = self.control.dato
+            self.registroControl("00", instruccion[2], "")
+            self.transferenciasMemoria()
+            if self.memory.señal == "00": self.datoMemoriaMBR()
+            self.bus.transferirDato(self.mbr, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.sub()
+            if valor == 2: return[valor, instruccion[4]]
+            if valor == 1: return[valor, instruccion[2]]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.bus.transferirDato(self.control, self.mbr)
+            self.transferenciasMemoria()
+            if self.memory.señal == "01": self.memory.write()
+            return [valor, ""]
+
+        if instruccion[1] == "Memoria" and instruccion[3] == "Registro":
+            self.registroControl("00", instruccion[4], "")
+            self.transferenciasRegistros()
+            if self.registros.señal == "00":  self.registros.read()
+            self.bus.transferirDato(self.registros, self.control)
+            self.alu.dato2 = self.control.dato
+            self.registroControl("00", instruccion[2], "")
+            self.transferenciasMemoria()
+            if self.memory.señal == "00": self.datoMemoriaMBR()
+            self.bus.transferirDato(self.mbr, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.sub()
+            if valor == 2:  return [valor, instruccion[4]]
+            if valor == 1:  return [valor, instruccion[2]]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.bus.transferirDato(self.control, self.mbr)
+            self.transferenciasMemoria()
+            if self.memory.señal == "01": self.memory.write()
+            return [valor, ""]
+
+    def jmp(self, instruccion):
         if instruccion[1] == "Registro":
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00": self.registros.read()
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
             self.pc.contador = bin(int(self.control.dato, 2) - 1)[2:].zfill(32)
-            time.sleep(demora)
 
         if instruccion[1] == "Inmediato":
             self.control.dato = instruccion[2]
-            time.sleep(demora)
             self.pc.contador = bin(int(self.control.dato, 2) - 1)[2:].zfill(32)
-            time.sleep(demora)
 
         if instruccion[1] == "Memoria":
             self.control.direccion = instruccion[2]
-            time.sleep(demora)
             self.pc.contador = bin(int(self.control.direccion, 2) - 1)[2:].zfill(32)
-            time.sleep(demora)
-         
-    def store(self, instruccion, demora):
+            
+    def store(self, instruccion):
         self.registroControl("00", instruccion[4], "")
-        time.sleep(demora)
         self.transferenciasRegistros()
-        time.sleep(demora)
         if self.registros.señal == "00": self.registros.read()
-        time.sleep(demora)
         self.registroControl("01", instruccion[2], "")
-        time.sleep(demora)
         self.bus.transferirDato(self.registros, self.mbr)
-        time.sleep(demora)
         self.transferenciasMemoria()
-        time.sleep(demora)
         if self.memory.señal == "01": self.memory.write()
-        time.sleep(demora)
-
-    def load(self, instruccion, demora):
-        self.registroControl("00", instruccion[4], "")
-        time.sleep(demora)
+        
+    def load(self, instruccion):
+        self.registroControl("00", instruccion[4], "") 
         self.transferenciasMemoria()
-        time.sleep(demora)
         if self.memory.señal == "00": self.datoMemoriaMBR()
-        time.sleep(demora)
         self.registroControl("01", instruccion[2], "")
-        time.sleep(demora)
         self.transferenciasRegistros()
-        time.sleep(demora)
         self.bus.transferirDato(self.mbr, self.registros)
-        time.sleep(demora)
         if self.registros.señal == "01": self.registros.write()
-        time.sleep(demora)
-    
-    def instruccionAnd(self, instruccion, demora):
+        
+    def instruccionAnd(self, instruccion):
         if instruccion[1] == "Registro" and instruccion[3] == "Inmediato":
             self.alu.dato1 = instruccion[4].zfill(32)
-            time.sleep(demora)
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00": self.registros.read()
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
             valor = self.alu.operacionAnd()
-            time.sleep(demora)
             if valor == 2: [valor, str(int(instruccion[2], 2))]
-            time.sleep(demora)
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.registros)
-            time.sleep(demora)
             if self.registros.señal == "01": self.registros.write()
-            time.sleep(demora)
             return [0, ""]
 
         if instruccion[1] == "Registro" and instruccion[3] == "Memoria":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00":  self.datoMemoriaMBR()
-            time.sleep(demora)
             self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
             self.alu.dato1 = self.control.dato
-            time.sleep(demora)
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00": self.registros.read()
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
             valor = self.alu.operacionAnd()
-            time.sleep(demora)
             if valor == 1: return [valor, str(int(instruccion[4], 2))]
             if valor == 2: return [valor, str(int(instruccion[2], 2))]
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.registros)
-            time.sleep(demora)
             if self.registros.señal == "01": self.registros.write()
-            time.sleep(demora)
             return [valor, ""]
 
         if instruccion[1] == "Registro" and instruccion[3] == "Registro":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00":  self.registros.read()
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
             self.alu.dato1 = self.control.dato
-            time.sleep(demora)
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00": self.registros.read()
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
             valor = self.alu.operacionAnd()
-            time.sleep(demora)
             if valor == 1: return [valor, str(int(instruccion[4], 2))]
             if valor == 2: return [valor, str(int(instruccion[2], 2))]
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.registros)
-            time.sleep(demora)
             if self.registros.señal == "01": self.registros.write()
-            time.sleep(demora)
             return [valor, ""]
 
         if instruccion[1] == "Memoria" and instruccion[3] == "Inmediato":
             self.alu.dato1 = instruccion[4].zfill(32)
-            time.sleep(demora)
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00": self.datoMemoriaMBR()
-            time.sleep(demora)
             self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
             valor = self.alu.operacionAnd()
-            time.sleep(demora)
             if valor == 2: return [valor, str(int(instruccion[2], 2))]
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.mbr)
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "01": self.memory.write()
-            time.sleep(demora)
             return [0, ""]
 
         if instruccion[1] == "Memoria" and instruccion[3] == "Memoria":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00":  self.datoMemoriaMBR()
-            time.sleep(demora)
             self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
             self.alu.dato1 = self.control.dato
-            time.sleep(demora)
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00": self.datoMemoriaMBR()
-            time.sleep(demora)
             self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
             valor = self.alu.operacionAnd()
-            time.sleep(demora)
             if valor == 1: return [valor, str(int(instruccion[4], 2))]
             if valor == 2: return [valor, str(int(instruccion[2], 2))]
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.mbr)
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "01": self.memory.write()
-            time.sleep(demora)
             return [valor, ""]
 
         if instruccion[1] == "Memoria" and instruccion[3] == "Registro":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00":  self.registros.read()
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
             self.alu.dato1 = self.control.dato
-            time.sleep(demora)
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00": self.datoMemoriaMBR()
-            time.sleep(demora)
             self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
             valor = self.alu.operacionAnd()
-            time.sleep(demora)
             if valor == 1: return [valor, str(int(instruccion[4], 2))]
             if valor == 2: return [valor, str(int(instruccion[2], 2))]
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.mbr)
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "01": self.memory.write()
-            time.sleep(demora)
             return [valor, ""]
 
-    def instruccionOr(self, instruccion, demora):
+    def instruccionOr(self, instruccion):
         if instruccion[1] == "Registro" and instruccion[3] == "Inmediato":
             self.alu.dato1 = instruccion[4].zfill(32)
-            time.sleep(demora)
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00": self.registros.read()
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
             valor = self.alu.operacionOr()
-            time.sleep(demora)
             if valor == 2: [valor, str(int(instruccion[2], 2))]
-            time.sleep(demora)
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.registros)
-            time.sleep(demora)
             if self.registros.señal == "01": self.registros.write()
-            time.sleep(demora)
             return [0, ""]
 
         if instruccion[1] == "Registro" and instruccion[3] == "Memoria":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00":  self.datoMemoriaMBR()
-            time.sleep(demora)
             self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
             self.alu.dato1 = self.control.dato
-            time.sleep(demora)
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00": self.registros.read()
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
             valor = self.alu.operacionOr()
-            time.sleep(demora)
             if valor == 1: return [valor, str(int(instruccion[4], 2))]
             if valor == 2: return [valor, str(int(instruccion[2], 2))]
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.registros)
-            time.sleep(demora)
             if self.registros.señal == "01": self.registros.write()
-            time.sleep(demora)
             return [valor, ""]
 
         if instruccion[1] == "Registro" and instruccion[3] == "Registro":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00":  self.registros.read()
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
             self.alu.dato1 = self.control.dato
-            time.sleep(demora)
-            self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
+            self.registroControl("00", instruccion[2], "") 
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00": self.registros.read()
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
             valor = self.alu.operacionOr()
-            time.sleep(demora)
             if valor == 1: return [valor, str(int(instruccion[4], 2))]
             if valor == 2: return [valor, str(int(instruccion[2], 2))]
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.registros)
-            time.sleep(demora)
-            if self.registros.señal == "01": self.registros.write()
-            time.sleep(demora)
+            if self.registros.señal == "01": self.registros.write()  
             return [valor, ""]
 
         if instruccion[1] == "Memoria" and instruccion[3] == "Inmediato":
             self.alu.dato1 = instruccion[4].zfill(32)
-            time.sleep(demora)
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00": self.datoMemoriaMBR()
-            time.sleep(demora)
             self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
             valor = self.alu.operacionOr()
-            time.sleep(demora)
             if valor == 2: return [valor, str(int(instruccion[2], 2))]
-            time.sleep(demora)
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.mbr)
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "01": self.memory.write()
-            time.sleep(demora)
             return [0, ""]
 
         if instruccion[1] == "Memoria" and instruccion[3] == "Memoria":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00":  self.datoMemoriaMBR()
-            time.sleep(demora)
             self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
             self.alu.dato1 = self.control.dato
-            time.sleep(demora)
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00": self.datoMemoriaMBR()
-            time.sleep(demora)
             self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
             valor = self.alu.operacionOr()
-            time.sleep(demora)
             if valor == 1: return [valor, str(int(instruccion[4], 2))]
             if valor == 2: return [valor, str(int(instruccion[2], 2))]
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.mbr)
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "01": self.memory.write()
-            time.sleep(demora)
             return [valor, ""]
 
         if instruccion[1] == "Memoria" and instruccion[3] == "Registro":
             self.registroControl("00", instruccion[4], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00":  self.registros.read()
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
             self.alu.dato1 = self.control.dato
-            time.sleep(demora)
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00": self.datoMemoriaMBR()
-            time.sleep(demora)
             self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
             self.alu.dato2 = self.control.dato
-            time.sleep(demora)
             valor = self.alu.operacionOr()
-            time.sleep(demora)
             if valor == 1: return [valor, str(int(instruccion[4], 2))]
             if valor == 2: return [valor, str(int(instruccion[2], 2))]
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.mbr)
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "01": self.memory.write()
-            time.sleep(demora)
             return [valor, ""]
 
-    def instruccionNot(self, instruccion, demora):
+    def instruccionNot(self, instruccion):
         if instruccion[1] == "Registro":
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "00": self.registros.read()
-            time.sleep(demora)
             self.bus.transferirDato(self.registros, self.control)
-            time.sleep(demora)
             self.alu.dato1 = self.control.dato
-            time.sleep(demora)
             valor = self.alu.operacionNot()
-            time.sleep(demora)
             if valor == 1: return [valor, str(int(instruccion[2], 2))]
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.registros)
-            time.sleep(demora)
             self.transferenciasRegistros()
-            time.sleep(demora)
             if self.registros.señal == "01": self.registros.write()
-            time.sleep(demora)
             return [valor, ""]
 
         if instruccion[1] == "Memoria":
             self.registroControl("00", instruccion[2], "")
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "00": self.datoMemoriaMBR()
-            time.sleep(demora)
             self.bus.transferirDato(self.mbr, self.control)
-            time.sleep(demora)
             self.alu.dato1 = self.control.dato
-            time.sleep(demora)
             valor = self.alu.operacionNot()
-            time.sleep(demora)
             if valor == 1: return [valor, str(int(instruccion[2], 2))]
             self.registroControl("01", instruccion[2], self.alu.result)
-            time.sleep(demora)
             self.bus.transferirDato(self.control, self.mbr)
-            time.sleep(demora)
             self.transferenciasMemoria()
-            time.sleep(demora)
             if self.memory.señal == "01": self.memory.write()
-            time.sleep(demora)
             return [valor, ""]
     
     def registroControl(self, señal, direccion, dato):
