@@ -65,18 +65,13 @@ def render_system_state():
         st.write("Señales Activas")
         st.table([{"Señal": simulador.control.señal, "Instrucción": simulador.control.dato}])
 
-        st.text_area("Salida de la ejecución del programa", simulador.salida, disabled=True, height=100)
-
-    # División inferior en columnas
-    col4, col5 = st.columns([1, 1])
-
-    with col4:
-        # ALU
+      # ALU
         st.subheader("ALU")
         st.write("Operaciones Lógicas y Aritméticas")
         st.table([
             {"Dato 1": simulador.alu.dato1, "Dato 2": simulador.alu.dato2, "Resultado": simulador.alu.result, "Carry": simulador.alu.carry, "Overflow": simulador.alu.overflow},
         ])
+    
 
     
 
