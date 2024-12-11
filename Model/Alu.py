@@ -125,6 +125,48 @@ class Alu:
         self.dato1 = ""
         self.dato2 = ""
         return 0
+    
+    def div(self):
+        if self.dato1 == "":
+            return 1
+        if self.dato2 == "":
+            return 2
+        if int(self.dato2) == 0:
+            return 3
+        dato1 = 0
+        dato2 = 0
+        signoDato1 = ""
+        signoDato2 = ""
+        if self.dato1[0] == "1":
+            signoDato1 == "Negativo"
+            self.dato1 = self.dato1[1:]
+            dato1 = -int(self.dato1, 2)
+        else: 
+            signoDato1 = "Positivo"
+            self.dato1 = self.dato1[1:]
+            dato1 = int(self.dato1, 2)
+        if self.dato2[0] == "1": 
+            signoDato2 = "Negativo"
+            self.dato2 = self.dato2[1:]
+            dato2 = -int(self.dato2, 2)
+        else: 
+            signoDato2 = "Positivo"
+            self.dato2 = self.dato2[1:]
+            dato2 = int(self.dato2, 2)
+        self.result = int(dato1 / dato2)
+        # Verificar si hay desbordamiento o no
+        if self.result > 2147483647 or self.result < -2147483648:
+            if signoDato1 == "Positivo" and signoDato2 == "Positivo": self.carry = 1
+            else: self.overflow = 1
+            if self.result > 0: self.result = "0" + bin(self.result)[-31:].zfill(31)
+            elif self.result < 0: self.result = "1" + bin(self.result)[-31:].zfill(31)
+        else:
+            if self.result > 0: self.result = "0" + bin(self.result)[2:].zfill(31)
+            elif self.result < 0: self.result = "1" + bin(self.result)[3:].zfill(31)
+            else: self.result = bin(self.result)[2:].zfill(32)
+        self.dato1 = ""
+        self.dato2 = ""
+        return 0
 
 
     def operacionAnd(self):

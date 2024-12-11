@@ -128,6 +128,17 @@ class SimuladorComputador:
                     self.alu.carry = 0
                     self.alu.overflow = 0
 
+                if instruccion[0] == "DIV":
+                    valorx = self.div(instruccion)
+                    if valorx[0] == 1 or valorx[0] == 2:
+                       print("La posicion de memoria " + str(int(valorx[1], 2)) + " no ha sido inicializada")
+                       break
+                    if valorx[0] == 3:
+                       print("No existe la división entre 0")
+                       break
+                    self.alu.carry = 0
+                    self.alu.overflow = 0
+
                 if instruccion[0] == "JMP":
                     self.jmp(instruccion)
 
@@ -553,6 +564,123 @@ class SimuladorComputador:
             valor = self.alu.mul()
             if valor == 2:  return [valor, instruccion[4]]
             if valor == 1:  return [valor, instruccion[2]]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.bus.transferirDato(self.control, self.mbr)
+            self.transferenciasMemoria()
+            if self.memory.señal == "01": self.memory.write()
+            return [valor, ""]
+
+    def div(self, instruccion):
+        if instruccion[1] == "Registro" and instruccion[3] == "Inmediato":
+            self.alu.dato2 = instruccion[4]
+            self.registroControl("00", instruccion[2], "")
+            self.transferenciasRegistros()
+            if self.registros.señal == "00": self.registros.read()
+            self.bus.transferirDato(self.registros, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.div()
+            if valor == 1: return [valor, instruccion[2]]
+            if valor == 3: return [valor, ""]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.transferenciasRegistros()
+            self.bus.transferirDato(self.control, self.registros)
+            if self.registros.señal == "01": self.registros.write()
+            return [valor, ""]
+
+        if instruccion[1] == "Registro" and instruccion[3] == "Memoria":
+            self.registroControl("00", instruccion[4], "")
+            self.transferenciasMemoria()
+            if self.memory.señal == "00":  self.datoMemoriaMBR()
+            self.bus.transferirDato(self.mbr, self.control)
+            self.alu.dato2 = self.control.dato
+            self.registroControl("00", instruccion[2], "")
+            self.transferenciasRegistros()
+            if self.registros.señal == "00": self.registros.read()
+            self.bus.transferirDato(self.registros, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.div()
+            if valor == 2: return [valor, instruccion[4]]
+            if valor == 1: return [valor, instruccion[2]]
+            if valor == 3: return [valor, ""]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.transferenciasRegistros()
+            self.bus.transferirDato(self.control, self.registros)
+            if self.registros.señal == "01": self.registros.write()
+            return [valor, ""]
+
+        if instruccion[1] == "Registro" and instruccion[3] == "Registro":
+            self.registroControl("00", instruccion[4], "")
+            self.transferenciasRegistros()
+            if self.registros.señal == "00":  self.registros.read()
+            self.bus.transferirDato(self.registros, self.control)
+            self.alu.dato2 = self.control.dato
+            self.registroControl("00", instruccion[2], "")
+            self.transferenciasRegistros()
+            if self.registros.señal == "00": self.registros.read()
+            self.bus.transferirDato(self.registros, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.div()
+            if valor == 2: return [valor, instruccion[4]]
+            if valor == 1: return [valor, instruccion[2]]
+            if valor == 3: return [valor, ""]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.transferenciasRegistros()
+            self.bus.transferirDato(self.control, self.registros)
+            if self.registros.señal == "01": self.registros.write()
+            return [valor, ""]
+
+        if instruccion[1] == "Memoria" and instruccion[3] == "Inmediato":
+            self.alu.dato2 = instruccion[4]
+            self.registroControl("00", instruccion[2], "")
+            self.transferenciasMemoria()
+            if self.memory.señal == "00": self.datoMemoriaMBR()
+            self.bus.transferirDato(self.mbr, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.div()
+            if valor == 1: return [valor, instruccion[2]]
+            if valor == 3: return [valor, ""]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.bus.transferirDato(self.control, self.mbr)
+            self.transferenciasMemoria()
+            if self.memory.señal == "01": self.memory.write()
+            return [valor, ""]
+
+        if instruccion[1] == "Memoria" and instruccion[3] == "Memoria":
+            self.registroControl("00", instruccion[4], "")
+            self.transferenciasMemoria()
+            if self.memory.señal == "00":  self.datoMemoriaMBR()
+            self.bus.transferirDato(self.mbr, self.control)
+            self.alu.dato2 = self.control.dato
+            self.registroControl("00", instruccion[2], "")
+            self.transferenciasMemoria()
+            if self.memory.señal == "00": self.datoMemoriaMBR()
+            self.bus.transferirDato(self.mbr, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.div()
+            if valor == 2: return[valor, instruccion[4]]
+            if valor == 1: return[valor, instruccion[2]]
+            if valor == 3: return [valor, ""]
+            self.registroControl("01", instruccion[2], self.alu.result)
+            self.bus.transferirDato(self.control, self.mbr)
+            self.transferenciasMemoria()
+            if self.memory.señal == "01": self.memory.write()
+            return [valor, ""]
+
+        if instruccion[1] == "Memoria" and instruccion[3] == "Registro":
+            self.registroControl("00", instruccion[4], "")
+            self.transferenciasRegistros()
+            if self.registros.señal == "00":  self.registros.read()
+            self.bus.transferirDato(self.registros, self.control)
+            self.alu.dato2 = self.control.dato
+            self.registroControl("00", instruccion[2], "")
+            self.transferenciasMemoria()
+            if self.memory.señal == "00": self.datoMemoriaMBR()
+            self.bus.transferirDato(self.mbr, self.control)
+            self.alu.dato1 = self.control.dato
+            valor = self.alu.div()
+            if valor == 2:  return [valor, instruccion[4]]
+            if valor == 1:  return [valor, instruccion[2]]
+            if valor == 3: return [valor, ""]
             self.registroControl("01", instruccion[2], self.alu.result)
             self.bus.transferirDato(self.control, self.mbr)
             self.transferenciasMemoria()

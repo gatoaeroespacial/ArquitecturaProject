@@ -56,6 +56,12 @@ program = [
     "MUL [51], 32",
     "MUL [52], CL",
     "MUL [54], [51]",
+    "DIV AL, BL",
+    "DIV BL, 2",
+    "DIV CL, [52]",
+    "DIV [53], BL",
+    "DIV [51], 2",
+    "DIV [54], [52]",
     "HLT"
 ]
 
